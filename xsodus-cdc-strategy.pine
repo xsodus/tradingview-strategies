@@ -1,0 +1,73 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © xsodus
+// Added Labels and alert conditions and other quality of life feature
+
+//@version=4
+strategy("Xsodus CDC ActionZone V2",overlay=true)
+
+sourceData = input(title="Source Data",type=input.source, defval=close)
+smoothPeriod = input(title="Smoothing period (1 = no smoothing)", type=input.integer, defval=1)
+startDate = input(title="Start Date", type=input.time, defval=timestamp("2018-01-01T00:00+07:00"))
+endDate = input(title="End Date", type=input.time, defval=timestamp("9999-01-01T00:00+07:00"))
+
+positionSize = input(title="Position Size", type=input.integer, defval=1)
+
+fastEMAInput = input(title="Fast EMA period", type=input.integer, defval=12)
+slowEMAInput = input(title="Slow EMA period", type=input.integer, defval=26)
+
+stopLossPercentage =  input(title="Stoploss %", type=input.float, defval=20) * 0.01
+
+xPrice = ema(sourceData,smoothPeriod)
+
+emaFast = ema(sourceData,fastEMAInput)
+emaSlow = ema(sourceData,slowEMAInput)
+
+
+long = emaFast > emaSlow
+short = emaFast < emaSlow
+
+// price bar colors
+Green = long and xPrice>emaFast // Buy
+Blue = short and xPrice>emaFast and xPrice>emaSlow //Pre Buy 2
+LBlue = short and xPrice>emaFast and xPrice<emaSlow //Pre Buy 1
+
+Red = short and xPrice < emaFast // Sell
+Orange = long and xPrice < emaFast and xPrice < emaSlow // Pre Sell 2
+Yellow = long and xPrice < emaFast and xPrice > emaSlow // Pre Sell 1
+
+
+// Buy if the fast EMA is higer than slow EMA and current histrogram MACD is higer than 0
+buy = long
+sell = short
+
+// Calculate stop loss price condition.
+longStopPrice  = strategy.position_avg_price * (1 - stopLossPercentage)
+
+bColor = Green ? color.green : 
+     Blue ? color.blue : 
+     LBlue ? color.aqua : 
+     Red ? color.red : 
+     Orange ? color.orange : 
+     Yellow ? color.yellow : 
+     color.black
+barcolor(bColor)
+
+//****************************************************************************//
+// Display MA lines
+
+FastL = plot(emaFast,"Fast EMA",color=color.red)
+SlowL = plot(emaSlow,"Slow EMA",color=color.blue)
+fillcolor = long ? color.green : short ? color.red : color.black
+fill(FastL,SlowL,fillcolor)
+
+plot(emaFast,title="Fast EMA",color=color.green,linewidth=3)
+plot(emaSlow,title="Slow EMA",color=color.red,linewidth=3)
+
+// Update stop loss
+if strategy.position_size > 0
+    strategy.exit("Long",stop=longStopPrice)
+
+// Open and close position
+if time > startDate and time < endDate
+    strategy.entry("Long",strategy.long,positionSize,when = buy)
+    strategy.close("Long", when = sell)

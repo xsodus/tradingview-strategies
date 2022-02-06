@@ -1,0 +1,28 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © xsodus
+
+//@version=4
+strategy("Xsodus Super Trend Strategy Long Only V1", overlay=true)
+
+startDate = input(title="Start Date", type=input.time, defval=timestamp("2018-01-01T00:00+07:00"))
+endDate = input(title="End Date", type=input.time, defval=timestamp("9999-02-20T00:00+07:00"))
+
+
+positionSize = input(title="Position Size", type=input.integer, defval=1)
+mult = input(title="Super Trend Factor", type=input.float, defval=2)
+len = input(title="Super Trend Length", type=input.integer, defval=12)
+
+[superTrend, dir] = supertrend(mult, len)
+
+buy = dir == -1 and dir == dir[0]
+sell = dir == 1 and dir == dir[0]
+
+colResistance = dir == 1 and dir == dir[1] ? color.new(color.red, 0) : color.new(color.red, 100)
+colSupport = dir == -1 and dir == dir[1] ? color.new(color.green, 0) : color.new(color.green, 100)
+
+plot(superTrend, color = colResistance, linewidth=2)
+plot(superTrend, color = colSupport, linewidth=2)
+
+if time > startDate and time < endDate
+    strategy.entry("Long",strategy.long,positionSize,when = buy)
+    strategy.close("Long", when = sell)
