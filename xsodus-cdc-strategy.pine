@@ -15,7 +15,8 @@ positionSize = input(title="Position Size", type=input.integer, defval=1)
 fastEMAInput = input(title="Fast EMA period", type=input.integer, defval=12)
 slowEMAInput = input(title="Slow EMA period", type=input.integer, defval=26)
 
-stopLossPercentage =  input(title="Stoploss %", type=input.float, defval=20) * 0.01
+enableStopLoss = input(title="Enable stop loss", type=input.bool, defval=true)
+stopLossPercentage =  input(title="Stop loss %", type=input.float, defval=20) * 0.01
 
 xPrice = ema(sourceData,smoothPeriod)
 
@@ -64,7 +65,7 @@ plot(emaFast,title="Fast EMA",color=color.green,linewidth=3)
 plot(emaSlow,title="Slow EMA",color=color.red,linewidth=3)
 
 // Update stop loss
-if strategy.position_size > 0
+if strategy.position_size > 0 and enableStopLoss
     strategy.exit("Long",stop=longStopPrice)
 
 // Open and close position
