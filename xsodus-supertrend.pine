@@ -1,6 +1,10 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © xsodus
 
+// This script was implemented based on Super Trend indicator
+// It will send a buy signal when the bullish zone (green zone) occurs 
+// And it will send a sell signal when the bearish zone (red zone) occurs.
+
 //@version=4
 strategy("Xsodus Super Trend Strategy Long Only V2", overlay=true)
 

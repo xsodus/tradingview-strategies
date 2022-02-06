@@ -2,8 +2,12 @@
 // © xsodus
 // Added Labels and alert conditions and other quality of life feature
 
+// This script was implemented based on CDC ActionZone indicator (by Piriya)
+// The concept is to send a buy signal if fast EMA crosses over slow EMA and send a sell signal when the slow EMA crosses over fast EMA.
+// In which, we call trend following strategy. 
+
 //@version=4
-strategy("Xsodus CDC ActionZone V2",overlay=true)
+strategy("Xsodus CDC ActionZone V2 Long Only",overlay=true)
 
 sourceData = input(title="Source Data",type=input.source, defval=close)
 smoothPeriod = input(title="Smoothing period (1 = no smoothing)", type=input.integer, defval=1)
@@ -28,7 +32,7 @@ var isOrdered = false
 long = emaFast > emaSlow
 short = emaFast < emaSlow
 
-// price bar colors
+// Price bar colors (Migrate from CDC ActionZone Indicator)
 Green = long and xPrice>emaFast // Buy
 Blue = short and xPrice>emaFast and xPrice>emaSlow //Pre Buy 2
 LBlue = short and xPrice>emaFast and xPrice<emaSlow //Pre Buy 1
@@ -37,8 +41,7 @@ Red = short and xPrice < emaFast // Sell
 Orange = long and xPrice < emaFast and xPrice < emaSlow // Pre Sell 2
 Yellow = long and xPrice < emaFast and xPrice > emaSlow // Pre Sell 1
 
-
-// Buy if the fast EMA is higer than slow EMA and current histrogram MACD is higer than 0
+// Send buy signal if the fast EMA is higer than slow EMA
 buy = long
 sell = short
 
