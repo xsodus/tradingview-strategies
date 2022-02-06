@@ -15,10 +15,13 @@ len = input(title="Super Trend Length", type=input.integer, defval=12)
 enableStopLoss = input(title="Enable stop loss", type=input.bool, defval=true)
 stopLossPercentage =  input(title="Stop loss %", type=input.float, defval=20) * 0.01
 
+var isOrdered = false
+
 [superTrend, dir] = supertrend(mult, len)
 
 buy = dir == -1 and dir == dir[0]
 sell = dir == 1 and dir == dir[0]
+
 
 // Calculate stop loss price condition.
 longStopPrice  = strategy.position_avg_price * (1 - stopLossPercentage)
@@ -29,10 +32,19 @@ colSupport = dir == -1 and dir == dir[1] ? color.new(color.green, 0) : color.new
 plot(superTrend, color = colResistance, linewidth=2)
 plot(superTrend, color = colSupport, linewidth=2)
 
-// Update stop loss
+// Update open position status
+if time > startDate and time < endDate and isOrdered == false and strategy.position_size == 0
+    strategy.entry("Long",strategy.long,positionSize,when = buy)
+    isOrdered := buy
+    
+// Update stop loss status
 if strategy.position_size > 0 and enableStopLoss
     strategy.exit("Long",stop=longStopPrice)
 
-if time > startDate and time < endDate
-    strategy.entry("Long",strategy.long,positionSize,when = buy)
+// Update close position status
+if strategy.position_size > 0
     strategy.close("Long", when = sell)
+    
+// Reset flag for opening a new order
+if strategy.position_size == 0 and sell
+    isOrdered := false

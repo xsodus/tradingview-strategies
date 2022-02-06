@@ -23,6 +23,7 @@ xPrice = ema(sourceData,smoothPeriod)
 emaFast = ema(sourceData,fastEMAInput)
 emaSlow = ema(sourceData,slowEMAInput)
 
+var isOrdered = false
 
 long = emaFast > emaSlow
 short = emaFast < emaSlow
@@ -64,11 +65,19 @@ fill(FastL,SlowL,fillcolor)
 plot(emaFast,title="Fast EMA",color=color.green,linewidth=3)
 plot(emaSlow,title="Slow EMA",color=color.red,linewidth=3)
 
-// Update stop loss
+// Update open position status
+if time > startDate and time < endDate and isOrdered == false and strategy.position_size == 0
+    strategy.entry("Long",strategy.long,positionSize,when = buy)
+    isOrdered := buy
+    
+// Update stop loss status
 if strategy.position_size > 0 and enableStopLoss
     strategy.exit("Long",stop=longStopPrice)
 
-// Open and close position
-if time > startDate and time < endDate
-    strategy.entry("Long",strategy.long,positionSize,when = buy)
+// Update close position status
+if strategy.position_size > 0
     strategy.close("Long", when = sell)
+    
+// Reset flag for opening a new order
+if strategy.position_size == 0 and sell
+    isOrdered := false
