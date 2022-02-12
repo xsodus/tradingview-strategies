@@ -12,7 +12,6 @@ startDate = input(title="Start Date", type=input.time, defval=timestamp("2018-01
 endDate = input(title="End Date", type=input.time, defval=timestamp("9999-02-20T00:00+07:00"))
 
 
-positionSize = input(title="Position Size", type=input.integer, defval=1)
 mult = input(title="Super Trend Factor", type=input.float, defval=2)
 len = input(title="Super Trend Length", type=input.integer, defval=12)
 
@@ -38,7 +37,7 @@ plot(superTrend, color = colSupport, linewidth=2)
 
 // Update open position status
 if time > startDate and time < endDate and isOrdered == false and strategy.position_size == 0
-    strategy.entry("Long",strategy.long,positionSize,when = buy)
+    strategy.entry("Long",strategy.long,when = buy)
     isOrdered := buy
     
 // Update stop loss status
