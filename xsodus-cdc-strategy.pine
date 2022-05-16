@@ -7,7 +7,7 @@
 // In which, we call trend following strategy. 
 
 //@version=4
-strategy("Xsodus CDC ActionZone V2",overlay=true)
+strategy("Xsodus CDC ActionZone V3",overlay=true)
 
 sourceData = input(title="Source Data",type=input.source, defval=close)
 smoothPeriod = input(title="Smoothing period (1 = no smoothing)", type=input.integer, defval=1)
@@ -18,6 +18,7 @@ fastEMAInput = input(title="Fast EMA period", type=input.integer, defval=12)
 slowEMAInput = input(title="Slow EMA period", type=input.integer, defval=26)
 
 enableStopLoss = input(title="Enable stop loss", type=input.bool, defval=true)
+enableTrailingStop = input(title="Enable trailing stop", type=input.bool, defval=true)
 stopLossPercentage =  input(title="Stop loss %", type=input.float, defval=20) * 0.01
 
 xPrice = ema(sourceData,smoothPeriod)
@@ -25,7 +26,11 @@ xPrice = ema(sourceData,smoothPeriod)
 emaFast = ema(sourceData,fastEMAInput)
 emaSlow = ema(sourceData,slowEMAInput)
 
+lastPrice = sourceData[1]
+
 var isOrdered = false
+// Calculate stop loss price condition.
+var longStopPrice = 0.0
 
 long = emaFast > emaSlow
 short = emaFast < emaSlow
@@ -44,16 +49,7 @@ Yellow = long and xPrice < emaFast and xPrice > emaSlow // Pre Sell 1
 buy = long
 sell = short
 
-// Calculate stop loss price condition.
-longStopPrice  = strategy.position_avg_price * (1 - stopLossPercentage)
-
-bColor = Green ? color.green : 
-    Blue ? color.blue : 
-    LBlue ? color.aqua : 
-    Red ? color.red : 
-    Orange ? color.orange : 
-    Yellow ? color.yellow : 
-    color.black
+bColor = Green ? color.green :  Blue ? color.blue : LBlue ? color.aqua : Red ? color.red : Orange ? color.orange : Yellow ? color.yellow : color.black
 barcolor(bColor)
 
 //****************************************************************************//
@@ -71,9 +67,22 @@ plot(emaSlow,title="Slow EMA",color=color.red,linewidth=3)
 if time > startDate and time < endDate and isOrdered == false and strategy.position_size == 0
     strategy.entry("Long",strategy.long,when = buy)
     isOrdered := buy
-    
+
+// Debug on chart
+
+// Debug in data window
+plotchar(sourceData[0], "Current Price", "", location = location.top)
+plotchar(lastPrice, "Last Bar Price", "", location = location.top)
+plotchar(lastPrice * (1 - stopLossPercentage), "Current Stop Loss Price", "", location = location.top)
+
 // Update stop loss status
 if strategy.position_size > 0 and enableStopLoss
+    if enableTrailingStop and strategy.position_avg_price < lastPrice
+        longStopPrice := lastPrice * (1 - stopLossPercentage)
+    if not enableTrailingStop
+        longStopPrice := strategy.position_avg_price * (1 - stopLossPercentage)
+    
+if strategy.position_size > 0 and enableStopLoss and longStopPrice > 0.0
     strategy.exit("Long",stop=longStopPrice)
 
 // Update close position status
@@ -83,3 +92,4 @@ if strategy.position_size > 0
 // Reset flag for opening a new order
 if strategy.position_size == 0 and sell
     isOrdered := false
+    longStopPrice := 0.0
