@@ -25,7 +25,6 @@ var isOrdered = false
 buy = dir == -1 and dir == dir[0]
 sell = dir == 1 and dir == dir[0]
 
-
 // Calculate stop loss price condition.
 longStopPrice  = strategy.position_avg_price * (1 - stopLossPercentage)
 
