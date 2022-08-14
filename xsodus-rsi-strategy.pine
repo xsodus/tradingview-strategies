@@ -1,0 +1,71 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// @version=5
+// Author = TradeAutomation
+
+
+strategy("Xsodus RSI Strategy V1",overlay=true)
+
+
+// RSI Indicator Calculations //
+sourceData = input.source(title="Source Data", defval=close)
+rlen  = input.int(title="RSI Length", defval=14, minval=1)
+rsi = ta.rsi(close, rlen)
+ob = input(70, "Oversold Level")
+os = input(30, "Overbought Level")
+enableStopLoss = input.bool(title="Enable stop loss", defval=true)
+stopLossPercentage =  input.float(title="Stop loss %", defval=20) * 0.01
+
+
+// Operational Function //
+TrendFilterInput = input(false, "Only Trade When Price is Above EMA?")
+ema = ta.ema(close, input(100, "EMA Length"))
+TrendisLong = (close>ema)
+plot(ema)
+
+
+// Backtest Timeframe Inputs // 
+startDate = input.time(title="Start Date",defval=timestamp("2018-01-01T00:00+07:00"))
+endDate = input.time(title="End Date", defval=timestamp("9999-01-01T00:00+07:00"))
+InDateRange = time > startDate and time < endDate
+
+lastPrice = sourceData[1]
+
+// Global vars
+var longStopPrice = 0.0
+var isOrdered = false
+
+buy = TrendFilterInput ? ta.crossover(rsi, os) and TrendisLong : ta.crossover(rsi, os)
+sell = ta.crossunder(rsi, ob)
+
+// Update stop loss status
+if strategy.position_size > 0 and enableStopLoss
+    longStopPrice := strategy.position_avg_price * (1 - stopLossPercentage)
+
+if strategy.position_size > 0 and enableStopLoss and longStopPrice > 0.0
+    strategy.exit("Long",stop=longStopPrice,comment="Stop loss action")
+
+// Open position 
+if strategy.position_size == 0 and InDateRange and isOrdered == false
+    strategy.entry("Long", strategy.long, when = buy, comment="Buy")
+    isOrdered := buy
+
+// Close position        
+if strategy.position_size > 0
+    strategy.close("Long", when = sell , comment="Sell")
+    
+// Reset global states
+if strategy.position_size == 0 and sell
+    longStopPrice := 0.0
+    isOrdered := false
+
+
+// Debug in data window
+plotchar(sourceData[0], "Current Price", "", location = location.top)
+plotchar(lastPrice, "Last Bar Price", "", location = location.top)
+plotchar(lastPrice * (1 - stopLossPercentage), "Current Stop Loss Price", "", location = location.top)
+plotchar(TrendisLong, "Bullish Trend", "", location = location.top)
+plotchar(TrendFilterInput, "Trend Filter Input", "", location = location.top)
+plotchar(buy, "Buy?", "", location = location.top)
+plotchar(sell, "Sell?", "", location = location.top)
+plotchar(isOrdered, "isOrdered?", "", location = location.top)
+plotchar(InDateRange, "InDateRange?", "", location = location.top)
