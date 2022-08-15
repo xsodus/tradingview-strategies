@@ -54,7 +54,7 @@ if strategy.position_size > 0
     strategy.close("Long", when = sell , comment="Sell")
     
 // Reset global states
-if strategy.position_size == 0 and sell
+if  sell
     longStopPrice := 0.0
     isOrdered := false
 
