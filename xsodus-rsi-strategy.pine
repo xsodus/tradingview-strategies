@@ -10,8 +10,8 @@ strategy("Xsodus RSI Strategy V1",overlay=true)
 sourceData = input.source(title="Source Data", defval=close)
 rlen  = input.int(title="RSI Length", defval=14, minval=1)
 rsi = ta.rsi(close, rlen)
-ob = input(70, "Oversold Level")
-os = input(30, "Overbought Level")
+ob = input(70, "Overbought Level")
+os = input(30, "Oversold Level")
 enableStopLoss = input.bool(title="Enable stop loss", defval=true)
 stopLossPercentage =  input.float(title="Stop loss %", defval=20) * 0.01
 
