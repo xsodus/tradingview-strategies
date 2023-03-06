@@ -17,9 +17,11 @@ endDate = input(title="End Date", type=input.time, defval=timestamp("9999-01-01T
 fastEMAInput = input(title="Fast EMA period", type=input.integer, defval=12)
 slowEMAInput = input(title="Slow EMA period", type=input.integer, defval=26)
 
+isLongStrategy = input(title="Long Position Strategy",type=input.bool, defval=true)
 enableStopLoss = input(title="Enable stop loss", type=input.bool, defval=true)
-enableTrailingStop = input(title="Enable trailing stop", type=input.bool, defval=true)
+enableTrailingStop = input(title="Enable trailing stop", type=input.bool, defval=false)
 stopLossPercentage =  input(title="Stop loss %", type=input.float, defval=20) * 0.01
+
 
 xPrice = ema(sourceData,smoothPeriod)
 
@@ -30,7 +32,7 @@ lastPrice = sourceData[1]
 
 var isOrdered = false
 // Calculate stop loss price condition.
-var longStopPrice = 0.0
+var positionStopPrice = 0.0
 
 long = emaFast > emaSlow
 short = emaFast < emaSlow
@@ -60,36 +62,64 @@ SlowL = plot(emaSlow,"Slow EMA",color=color.blue)
 fillcolor = long ? color.green : short ? color.red : color.black
 fill(FastL,SlowL,fillcolor)
 
+
 plot(emaFast,title="Fast EMA",color=color.green,linewidth=3)
 plot(emaSlow,title="Slow EMA",color=color.red,linewidth=3)
 
+strategyName = isLongStrategy ? "Long" : "Short"
+shouldOpenPosition = isLongStrategy ? buy : sell 
+shouldClosePosition = not shouldOpenPosition
+mainStrategy = isLongStrategy ? strategy.long : strategy.short 
+hasClosePos = false
+hasExitPos = false
+
 // Update open position status
 if time > startDate and time < endDate and isOrdered == false and strategy.position_size == 0
-    strategy.entry("Long",strategy.long,when = buy)
-    isOrdered := buy
+    isOrdered := shouldOpenPosition
+    if isLongStrategy
+        strategy.order(strategyName,strategy.long,when = shouldOpenPosition)
+    else
+        strategy.order(strategyName,strategy.short,when = shouldOpenPosition)
 
-// Debug on chart
+
+// Update stop loss status
+if strategy.opentrades > 0 and enableStopLoss
+    if enableTrailingStop and strategy.position_avg_price < lastPrice
+        if isLongStrategy
+            positionStopPrice := lastPrice * (1 - stopLossPercentage)
+        else 
+            positionStopPrice := lastPrice * (1 + stopLossPercentage)
+    if not enableTrailingStop
+        if isLongStrategy
+            positionStopPrice := strategy.position_avg_price * (1 - stopLossPercentage)
+        else
+            positionStopPrice := strategy.position_avg_price * (1 + stopLossPercentage)
+
+if strategy.opentrades > 0 and enableStopLoss and positionStopPrice > 0.0
+    hasExitPos = true
+    strategy.exit(strategyName,stop = positionStopPrice)
+
+// Update close position status
+if strategy.opentrades > 0
+    hasClosePos = true
+    strategy.close(strategyName, when = shouldClosePosition)
+    
+// Reset flag for opening a new order
+if strategy.opentrades == 0 and shouldClosePosition
+    isOrdered := false
+    positionStopPrice := 0.0
 
 // Debug in data window
 plotchar(sourceData[0], "Current Price", "", location = location.top)
 plotchar(lastPrice, "Last Bar Price", "", location = location.top)
-plotchar(lastPrice * (1 - stopLossPercentage), "Current Stop Loss Price", "", location = location.top)
+plotchar(positionStopPrice, "Current Stop Loss Price", "", location = location.top)
 
-// Update stop loss status
-if strategy.position_size > 0 and enableStopLoss
-    if enableTrailingStop and strategy.position_avg_price < lastPrice
-        longStopPrice := lastPrice * (1 - stopLossPercentage)
-    if not enableTrailingStop
-        longStopPrice := strategy.position_avg_price * (1 - stopLossPercentage)
+plotchar(buy, "buy", "", location = location.top)
+plotchar(sell, "sell", "", location = location.top)
+plotchar(shouldOpenPosition, "Should open position", "", location = location.top)
+plotchar(shouldClosePosition, "Should close position", "", location = location.top)
+plotchar(isOrdered, "isOrdered", "", location = location.top)
     
-if strategy.position_size > 0 and enableStopLoss and longStopPrice > 0.0
-    strategy.exit("Long",stop=longStopPrice)
-
-// Update close position status
-if strategy.position_size > 0
-    strategy.close("Long", when = sell)
-    
-// Reset flag for opening a new order
-if strategy.position_size == 0 and sell
-    isOrdered := false
-    longStopPrice := 0.0
+plotchar(hasClosePos, "hasClosePos", "", location = location.top)
+plotchar(hasExitPos, "hasExitPos", "", location = location.top)
+plotchar(strategy.opentrades, "position count", "", location = location.top)
