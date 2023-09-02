@@ -5,26 +5,26 @@
 // It will send a buy signal when the bullish zone (green zone) occurs 
 // And it will send a sell signal when the bearish zone (red zone) occurs.
 
-//@version=4
+//@version=5
 strategy("Xsodus Super Trend Strategy Long Only V2", overlay=true)
 
-sourceData = input(title="Source Data",type=input.source, defval=close)
-startDate = input(title="Start Date", type=input.time, defval=timestamp("2018-01-01T00:00+07:00"))
-endDate = input(title="End Date", type=input.time, defval=timestamp("9999-02-20T00:00+07:00"))
+sourceData = input.source(title="Source Data", defval=close)
+startDate = input.time(title="Start Date", defval=timestamp("2018-01-01T00:00+07:00"))
+endDate = input.time(title="End Date", defval=timestamp("9999-02-20T00:00+07:00"))
 
 
-mult = input(title="Super Trend Factor", type=input.float, defval=2)
-len = input(title="Super Trend Length", type=input.integer, defval=12)
+mult = input.float(title="Super Trend Factor", defval=2)
+len = input.int(title="Super Trend Length", defval=12)
 
-enableStopLoss = input(title="Enable stop loss", type=input.bool, defval=true)
-useFixStopLoss = input(title="Use fix stop loss", type=input.bool, defval=true)
-stopLossPercentage = input(title="Stop loss %", type=input.float, defval=20) * 0.01
-useLastCandlePriceToStop = input(title="Use last candle price to stop", type=input.bool, defval=false)
-candleNumberToStop = input(title="Candle number to stop", type=input.integer, defval=7)
+enableStopLoss = input.bool(title="Enable stop loss", defval=true)
+useFixStopLoss = input.bool(title="Use fix stop loss", defval=true)
+stopLossPercentage = input.float(title="Stop loss %",  defval=20) * 0.01
+useLastCandlePriceToStop = input.bool(title="Use last candle price to stop", defval=false)
+candleNumberToStop = input.int(title="Candle number to stop", defval=7)
 
 var isOrdered = false
 
-[superTrend, dir] = supertrend(mult, len)
+[superTrend, dir] = ta.supertrend(mult, len)
 
 buy = dir == -1 and dir == dir[0]
 sell = dir == 1 and dir == dir[0]
@@ -32,10 +32,10 @@ sell = dir == 1 and dir == dir[0]
 var longStopPrice = 0.0
 
 // Calculate stop loss price condition.
-if strategy.position_size > 0 and enableStopLoss and useLastCandlePriceToStop and longStopPrice == 0
+if strategy.opentrades > 0 and enableStopLoss and useLastCandlePriceToStop and longStopPrice == 0
     longStopPrice := sourceData[candleNumberToStop]
 
-if strategy.position_size > 0 and enableStopLoss and useFixStopLoss and longStopPrice == 0
+if strategy.opentrades > 0 and enableStopLoss and useFixStopLoss and longStopPrice == 0
     longStopPrice := strategy.position_avg_price * (1 - stopLossPercentage)
 
 
@@ -46,20 +46,20 @@ plot(superTrend, color = colResistance, linewidth=2)
 plot(superTrend, color = colSupport, linewidth=2)
 
 // Update open position status
-if time > startDate and time < endDate and isOrdered == false and strategy.position_size == 0
-    strategy.entry("Long",strategy.long,when = buy)
+if time > startDate and time < endDate and isOrdered == false and strategy.position_size == 0 and buy
+    strategy.entry("Long",strategy.long)
     isOrdered := buy
     
 // Update stop loss status
-if strategy.position_size > 0 and enableStopLoss and longStopPrice > 0
+if strategy.opentrades > 0 and enableStopLoss and longStopPrice > 0
     strategy.exit("Long",stop=longStopPrice)
 
 // Update close position status
-if strategy.position_size > 0
-    strategy.close("Long", when = sell)
+if strategy.opentrades > 0 and sell
+    strategy.close("Long")
     
 // Reset flag for opening a new order
-if strategy.position_size == 0 and sell
+if strategy.opentrades == 0 and sell
     isOrdered := false
     longStopPrice := 0
 
