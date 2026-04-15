@@ -16,8 +16,8 @@ strategy("Xsodus Supertrend Strategy (Long Only) V3",
      commission_type = strategy.commission.percent,
      commission_value = 0.1,
      slippage        = 2,
-     margin_long     = 100,           // v6 default is 100; explicit for clarity
-     margin_short    = 100,           // v6 default is 100
+     margin_long     = 0,           // v6 default is 100; explicit for clarity
+     margin_short    = 0,           // v6 default is 100
      calc_on_every_tick = false,      // avoid repainting – calculate on bar close only
      process_orders_on_close = false) // orders fill on next bar's open (no lookahead)
 
