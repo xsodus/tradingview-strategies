@@ -1,70 +1,145 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © xsodus
 
-// This script was implemented based on Super Trend indicator
-// It will send a buy signal when the bullish zone (green zone) occurs 
-// And it will send a sell signal when the bearish zone (red zone) occurs.
+// =============================================================================
+// Xsodus Supertrend Strategy – Production-Ready (Long Only) V3
+// =============================================================================
+// Language: Pine Script® v6
+// =============================================================================
 
-//@version=5
-strategy("Xsodus Super Trend Strategy Long Only V2", overlay=true)
+//@version=6
+strategy("Xsodus Supertrend Strategy (Long Only) V3",
+     overlay        = true,
+     default_qty_type = strategy.percent_of_equity,
+     default_qty_value = 100,
+     initial_capital = 10000,
+     commission_type = strategy.commission.percent,
+     commission_value = 0.1,
+     slippage        = 2,
+     margin_long     = 100,           // v6 default is 100; explicit for clarity
+     margin_short    = 100,           // v6 default is 100
+     calc_on_every_tick = false,      // avoid repainting – calculate on bar close only
+     process_orders_on_close = false) // orders fill on next bar's open (no lookahead)
 
-sourceData = input.source(title="Source Data", defval=close)
-startDate = input.time(title="Start Date", defval=timestamp("2018-01-01T00:00+07:00"))
-endDate = input.time(title="End Date", defval=timestamp("9999-02-20T00:00+07:00"))
+// ─── Date Range ──────────────────────────────────────────────────────────────
+startDate = input.time(title  = "Start Date", defval = timestamp("2018-01-01T00:00+07:00"), group = "Date Range")
+endDate   = input.time(title  = "End Date",   defval = timestamp("9999-12-31T00:00+07:00"), group = "Date Range")
+inDateRange = time >= startDate and time <= endDate
 
+// ─── Supertrend Settings ─────────────────────────────────────────────────────
+stLength = input.int(  title = "Supertrend Length",     defval = 12,  minval = 1,               group = "Supertrend")
+stFactor = input.float(title = "Supertrend Multiplier", defval = 2.0, minval = 0.1, step = 0.1, group = "Supertrend")
 
-mult = input.float(title="Super Trend Factor", defval=2)
-len = input.int(title="Super Trend Length", defval=12)
+// ─── Trend Filter ────────────────────────────────────────────────────────────
+useEmaFilter  = input.bool( title = "Enable EMA Filter",  defval = false,                           group = "Trend Filter")
+emaLength     = input.int(  title = "EMA Length",          defval = 200, minval = 1,                 group = "Trend Filter")
 
-enableStopLoss = input.bool(title="Enable stop loss", defval=true)
-useFixStopLoss = input.bool(title="Use fix stop loss", defval=true)
-stopLossPercentage = input.float(title="Stop loss %",  defval=20) * 0.01
-useLastCandlePriceToStop = input.bool(title="Use last candle price to stop", defval=false)
-candleNumberToStop = input.int(title="Candle number to stop", defval=7)
+// ─── Stop-Loss Settings ──────────────────────────────────────────────────────
+slType = input.string(title = "Stop-Loss Type", defval = "Percentage",
+     options = ["None", "Percentage", "ATR"], group = "Risk Management")
+slPercent   = input.float(title = "SL Percentage (%)",    defval = 5.0,  minval = 0.1, step = 0.5, group = "Risk Management")
+slAtrMult   = input.float(title = "SL ATR Multiplier",    defval = 2.0,  minval = 0.1, step = 0.1, group = "Risk Management")
+slAtrLength = input.int(  title = "SL ATR Length",         defval = 14,   minval = 1,               group = "Risk Management")
 
-var isOrdered = false
+// ─── Take-Profit Settings ────────────────────────────────────────────────────
+useTakeProfit = input.bool( title = "Enable Take Profit",  defval = true,                            group = "Risk Management")
+rrRatio       = input.float(title = "Risk/Reward Ratio",   defval = 2.0,  minval = 0.5, step = 0.5, group = "Risk Management")
 
-[superTrend, dir] = ta.supertrend(mult, len)
+// ─── Trailing Stop ───────────────────────────────────────────────────────────
+useTrailing      = input.bool( title = "Enable Trailing Stop",        defval = false,                           group = "Trailing Stop")
+trailPercent     = input.float(title = "Trailing Stop Offset (%)",    defval = 2.0,  minval = 0.1, step = 0.5, group = "Trailing Stop")
+trailActivation  = input.float(title = "Trailing Activation Profit (%)", defval = 1.0, minval = 0.0, step = 0.5, group = "Trailing Stop")
 
-buy = dir == -1 and dir == dir[0]
-sell = dir == 1 and dir == dir[0]
+// =============================================================================
+// Indicator Calculations
+// =============================================================================
 
-var longStopPrice = 0.0
+// Supertrend
+[superTrend, stDirection] = ta.supertrend(stFactor, stLength)
 
-// Calculate stop loss price condition.
-if strategy.opentrades > 0 and enableStopLoss and useLastCandlePriceToStop and longStopPrice == 0
-    longStopPrice := sourceData[candleNumberToStop]
+// Detect the actual FLIP
+bullishFlip = stDirection == -1 and stDirection[1] == 1   // bearish → bullish
+bearishFlip = stDirection ==  1 and stDirection[1] == -1  // bullish → bearish
 
-if strategy.opentrades > 0 and enableStopLoss and useFixStopLoss and longStopPrice == 0
-    longStopPrice := strategy.position_avg_price * (1 - stopLossPercentage)
+// EMA trend filter
+ema = ta.ema(close, emaLength)
+emaFilterOk = useEmaFilter ? close > ema : true
 
+// ATR for ATR-based stop-loss
+atrValue = ta.atr(slAtrLength)
 
-colResistance = dir == 1 and dir == dir[1] ? color.new(color.red, 0) : color.new(color.red, 100)
-colSupport = dir == -1 and dir == dir[1] ? color.new(color.green, 0) : color.new(color.green, 100)
+// =============================================================================
+// Entry / Exit Logic
+// =============================================================================
 
-plot(superTrend, color = colResistance, linewidth=2)
-plot(superTrend, color = colSupport, linewidth=2)
+// Entry condition
+longCondition = bullishFlip and emaFilterOk and inDateRange and strategy.position_size == 0
 
-// Update open position status
-if time > startDate and time < endDate and isOrdered == false and strategy.position_size == 0 and buy
-    strategy.entry("Long",strategy.long)
-    isOrdered := buy
-    
-// Update stop loss status
-if strategy.opentrades > 0 and enableStopLoss and longStopPrice > 0
-    strategy.exit("Long",stop=longStopPrice)
+// Exit condition
+exitCondition = bearishFlip and strategy.position_size > 0
 
-// Update close position status
-if strategy.opentrades > 0 and sell
-    strategy.close("Long")
-    
-// Reset flag for opening a new order
-if strategy.opentrades == 0 and sell
-    isOrdered := false
-    longStopPrice := 0
+// ─── Calculate SL / TP prices on entry ───────────────────────────────────────
+var float entryPrice   = na
+var float stopLossPrice = na
+var float takeProfitPrice = na
 
-// Debug in data window
-plotchar(sourceData[0], "Current Price", "", location = location.top)
-plotchar(longStopPrice, "Current Stop Loss Price", "", location = location.top)
-plotchar(enableStopLoss and useFixStopLoss and longStopPrice == 0, "Activate Fixed Stop Loss", "", location = location.top)
-plotchar(strategy.position_avg_price, "Position Price", "", location = location.top)
+if longCondition
+    entryPrice := close  
+
+    // Stop-loss price
+    if slType == "Percentage"
+        stopLossPrice := entryPrice * (1 - slPercent / 100)
+    else if slType == "ATR"
+        stopLossPrice := entryPrice - (atrValue * slAtrMult)
+    else
+        stopLossPrice := na
+
+    // Take-profit price
+    if useTakeProfit and not na(stopLossPrice)
+        riskDistance    = entryPrice - stopLossPrice
+        takeProfitPrice := entryPrice + (riskDistance * rrRatio)
+    else
+        takeProfitPrice := na
+
+// ─── Place Orders ────────────────────────────────────────────────────────────
+if longCondition
+    strategy.entry("Long", strategy.long)
+
+if strategy.position_size > 0 and slType != "None"
+    if useTrailing
+        trailOffset = close * trailPercent / 100
+        trailActivationPrice = strategy.position_avg_price * (1 + trailActivation / 100)
+        strategy.exit("SL/TP", "Long",
+             stop         = stopLossPrice,
+             limit      = useTakeProfit ? takeProfitPrice : na,
+             trail_price = trailActivationPrice,
+             trail_offset = trailOffset)
+    else
+        strategy.exit("SL/TP", "Long",
+             stop  = stopLossPrice,
+             limit = useTakeProfit ? takeProfitPrice : na)
+
+if exitCondition
+    strategy.close("Long", comment = "ST Bearish Flip")
+
+// ─── Reset state ─────────────────────────────────────────────────────────────
+if strategy.position_size == 0
+    entryPrice      := na
+    stopLossPrice   := na
+    takeProfitPrice := na
+
+// =============================================================================
+// Visuals
+// =============================================================================
+
+stColor = stDirection == -1 ? color.new(#26a69a, 0) : color.new(#ef5350, 0)
+plot(superTrend, "Supertrend", color = stColor, linewidth = 2, style = plot.style_linebr)
+plot(useEmaFilter ? ema : na, "EMA Filter", color = color.new(color.orange, 30), linewidth = 1)
+
+plot(strategy.position_size > 0 ? stopLossPrice   : na, "Stop Loss",   color = color.new(color.red, 0),   linewidth = 1, style = plot.style_linebr)
+plot(strategy.position_size > 0 ? takeProfitPrice  : na, "Take Profit", color = color.new(color.green, 0), linewidth = 1, style = plot.style_linebr)
+
+plotshape(longCondition, "Buy Signal",  shape.triangleup,   location.belowbar, color.new(#26a69a, 0), size = size.small)
+plotshape(exitCondition, "Sell Signal", shape.triangledown, location.abovebar, color.new(#ef5350, 0), size = size.small)
+
+bgcolor(stDirection == -1 ? color.new(#26a69a, 92) : color.new(#ef5350, 95))
