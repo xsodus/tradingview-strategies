@@ -47,4 +47,9 @@ Use the **Crypto Exchange Pair Tuning** skill to find and compare pairs on a sel
 
 For example, ask Codex: “Use Crypto Exchange Pair Tuning to find and backtest spot pairs on `<exchange>`.” For Bitkub alerts, ask: “Use Bitkub Alert Setup to tune Bitkub pairs and prepare alerts.”
 
-Both skills need TradingView access and Computer Use for chart or alert actions. A signed-in TradingView web tab works; installing the desktop app is optional. Before proceeding, the skill checks that Computer Use can inspect and control the TradingView UI. If neither the app nor the web version is accessible, open and sign in to TradingView in a browser (or install and open the desktop app), then rerun the request with Computer Use available.
+Before either skill uses TradingView, it checks that the right browser-control tool is available:
+
+- **Codex:** use the Codex Computer Use plugin, then open TradingView in the desktop app or web browser. The desktop app is optional.
+- **Claude:** use `claude-in-chrome` and open TradingView in the web browser.
+
+Sign in and confirm the UI is accessible before the skill proceeds. If the required Computer Use tool or TradingView session is unavailable, the skill pauses and tells you what to open or enable.

@@ -9,11 +9,15 @@ metadata:
 
 Use this skill only when the user asks to create, edit, or refresh TradingView alerts for Bitkub pairs.
 
-## TradingView and Computer Use preflight
+## Prepare TradingView for your agent
 
-Before inspecting, creating, or editing alerts, confirm Computer Use is available. Start with its state inventory (for example, `await cua.getState()` in CUA REPL) and verify that the browser or desktop UI can be inspected and controlled. Use an accessible, signed-in TradingView desktop app or browser tab if one is already open. The TradingView web version is sufficient; installing the desktop app is optional.
+Before inspecting, creating, or editing alerts, identify the agent environment and use its supported browser controls:
 
-If neither the app nor web version is accessible, or Computer Use is unavailable, stop before any alert actions and tell the user what is missing. Ask them to open and sign in to TradingView in a browser, or install and open the desktop app if they prefer, and make Computer Use available. Resume only after the UI can be observed and controlled. Do not report an alert as active unless it was verified in TradingView.
+1. **Codex:** Use the Codex Computer Use plugin. Inspect the current UI (for example, with `await cua.getState()` in CUA REPL), then open TradingView in the desktop app or in a browser. The web version is sufficient; installing the desktop app is optional.
+2. **Claude:** Use `claude-in-chrome` and open TradingView in the web browser. Do not require the desktop app for this path.
+3. Sign in to TradingView, then verify that the selected Computer Use tool can inspect and control the TradingView UI before proceeding with alert work.
+
+If the correct Computer Use tool is unavailable or TradingView cannot be opened and controlled, stop and tell the user what is missing. Ask them to open TradingView in the appropriate app or browser and enable the required Computer Use tool. Do not report an alert as active unless it was verified in TradingView.
 
 ## Required tuning and user input
 

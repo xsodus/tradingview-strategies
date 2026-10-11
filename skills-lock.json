@@ -4,12 +4,12 @@
     "bitkub-altcoin-alert-setup": {
       "source": "/Users/akkaponsomjai/personal/tradingview-strategies",
       "sourceType": "local",
-      "computedHash": "a89fe4c003e62a67f4e8fd52f47eea369263a8bc443d41d9a118ad2ced955d40"
+      "computedHash": "96562575b028e05861441c7b76f59252eb64bdbe0245af1156fac4d9fd60ef51"
     },
     "crypto-exchange-pair-tuning": {
       "source": "/Users/akkaponsomjai/personal/tradingview-strategies",
       "sourceType": "local",
-      "computedHash": "148c4c06393624ef742d854c80b4bdc22ca316853850da4496ab2580db133a9c"
+      "computedHash": "9b68b0d50402bebffd8ba2c0cd3e99b005e8d19c2ee6e33a15aef0662c2b0e8b"
     }
   }
 }
