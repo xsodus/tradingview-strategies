@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git@github.com-personal:xsodus/tradingview-strategies.git"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^26.6.5",
     "nemo": "^4.13.1",
