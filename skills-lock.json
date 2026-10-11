@@ -1,10 +1,15 @@
 {
   "version": 1,
   "skills": {
-    "bitkub-altcoin-alerts": {
+    "bitkub-altcoin-alert-setup": {
       "source": "/Users/akkaponsomjai/personal/tradingview-strategies",
       "sourceType": "local",
-      "computedHash": "49b3ba57fb89295b35b4091393b44304b8986777d5a32af49fe43a729f37ffad"
+      "computedHash": "a89fe4c003e62a67f4e8fd52f47eea369263a8bc443d41d9a118ad2ced955d40"
+    },
+    "crypto-exchange-pair-tuning": {
+      "source": "/Users/akkaponsomjai/personal/tradingview-strategies",
+      "sourceType": "local",
+      "computedHash": "148c4c06393624ef742d854c80b4bdc22ca316853850da4496ab2580db133a9c"
     }
   }
 }

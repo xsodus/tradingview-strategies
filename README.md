@@ -4,7 +4,7 @@ This repository contains Pine Script strategies for exploring entry and exit sig
 
 ## Strategies
 
-- [`xsodus-supertrend-strategy.pine`](xsodus-supertrend-strategy.pine) — Supertrend-based strategy with configurable long and short behavior.
+- [`xsodus-supertrend-strategy.pine`](xsodus-supertrend-strategy.pine) — Long-only Supertrend strategy with configurable filters and risk controls.
 - [`xsodus-rsi-strategy.pine`](xsodus-rsi-strategy.pine) — RSI entries with optional EMA trend filtering and stop loss.
 - [`xsodus-cdc-strategy.pine`](xsodus-cdc-strategy.pine) — CDC ActionZone strategy.
 - [`xsodus-logistic-regression.pine`](xsodus-logistic-regression.pine) — Logistic-regression-based signal strategy.
@@ -21,39 +21,30 @@ This repository contains Pine Script strategies for exploring entry and exit sig
 
 Keep the script version and input values consistent between backtests and alerts. Historical results are for research and do not predict future performance.
 
-## Bitkub altcoin alert workflow
+## Crypto pair research and Bitkub alerts
 
-Use this process to select and maintain a set of up to 20 Bitkub altcoin strategy alerts. The detailed reusable instructions are in the [Bitkub Altcoin Alerts skill](.agents/skills/bitkub-altcoin-alerts/SKILL.md).
+Pair research is exchange-agnostic; the alert skill remains specific to Bitkub:
 
-### Backtest and qualify pairs
+1. [Crypto Exchange Pair Tuning](.agents/skills/crypto-exchange-pair-tuning/SKILL.md) asks which exchange and market to use when unspecified, verifies listed pairs, and compares the current Supertrend strategy on consistent 4h, two-year backtests by default. Project qualification defaults are PF ≥ 1.5 and maximum DD ≤ 20%.
+2. [Bitkub Alert Setup](.agents/skills/bitkub-altcoin-alert-setup/SKILL.md) uses the tuning ledger for Bitkub spot pairs, then asks the user how many alerts to set up, which pairs to use, whether to duplicate delivery, and which channels to enable (in-app, email, webhook/API) before changing alerts.
 
-1. Review `xsodus-supertrend-strategy.pine` and identify the intended strategy version before starting. Use that same version for every candidate.
-2. In TradingView, select the Bitkub spot pair and set the chart to 4 hours. Set the strategy start date to two years before the test date and its end date to the current date. Confirm the pair has data for the full period; label or exclude pairs with shorter history.
-3. Tune the strategy inputs per pair. Record the version, exact inputs, test dates, profit factor (PF), maximum drawdown (DD), and trade count.
-4. A pair qualifies when PF is at least 1.5 and maximum DD is no more than 20%. Prefer PF between 1.5 and 2 when candidates are otherwise comparable; higher PF still qualifies. Never round a failing result into a pass.
-5. Avoid relying on a small number of trades. Include the trade count and history coverage when comparing candidates. Backtest results describe historical performance and do not guarantee future results.
-
-### Create or refresh alerts
-
-1. Use the exact strategy instance from TradingView's condition dropdown, including the tested version and parameter values. Recheck it after changing inputs; a matching strategy name can refer to a different parameter set.
-2. Set the alert interval to 4 hours and choose the farthest expiration the account allows.
-3. Use this Bitkub webhook message pattern, replacing `COIN` with the pair's symbol:
-
-   ```json
-   { "action":"{{strategy.order.action}}", "symbol":"COIN_THB" }
-   ```
-
-4. Keep the existing Bitkub webhook destination and confirm Webhook URL notifications are enabled. Do not put the webhook URL or API key in this repository or documentation.
-5. After saving, verify the alert is active and confirm its pair, interval, strategy version and parameters, message, and webhook setting.
-
-### Replace a pair that no longer qualifies
-
-If a later parameter update makes an active pair fail either PF or DD threshold, test new Bitkub pairs using the same strategy version, 4h interval, and two-year window. Replace the failing pair only after a candidate passes both thresholds. Update the existing alert in place when the 20-alert plan limit is full, then verify the replacement's alert condition, payload, webhook, and active status. If no candidate passes, report that the 20 qualifying-pair target is unmet. Do not silently remove a working alert or purchase a plan upgrade.
-
-This workflow manages TradingView alerts only; it does not execute trades or place exchange orders.
+Alert setup uses the tested strategy parameters, checks the account quota, and verifies each saved alert. It does not execute trades or place exchange orders.
 
 ## Node.js tooling
 
 Install the development dependencies with `npm install`. TypeScript source files belong in `src/`; compile them with `npm run build` or check types without emitting files with `npm run typecheck`. The generated JavaScript and declarations go to `dist/`.
 
-Install this repository's agent skills for Codex with `npm run skills:install`.
+## Agent skills
+
+Install this repository's skills for Codex from the repository root:
+
+```sh
+npm install
+npm run skills:install
+```
+
+Use the **Crypto Exchange Pair Tuning** skill to find and compare pairs on a selected exchange. Name the exchange in your request; if you do not, the skill asks which exchange and market to use. Use **Bitkub Alert Setup** when you want TradingView alerts for Bitkub pairs. It first uses the tuning workflow, then asks how many alerts and which pairs to set up, whether notifications should be duplicated, and which channels to enable before changing alerts.
+
+For example, ask Codex: “Use Crypto Exchange Pair Tuning to find and backtest spot pairs on `<exchange>`.” For Bitkub alerts, ask: “Use Bitkub Alert Setup to tune Bitkub pairs and prepare alerts.”
+
+Both skills need TradingView access and Computer Use for chart or alert actions. A signed-in TradingView web tab works; installing the desktop app is optional. Before proceeding, the skill checks that Computer Use can inspect and control the TradingView UI. If neither the app nor the web version is accessible, open and sign in to TradingView in a browser (or install and open the desktop app), then rerun the request with Computer Use available.
