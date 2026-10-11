@@ -10,3 +10,7 @@ It is free and no additional charging.
 4. Press on `Save` button.
 5. Press on `Add to chart` button.
 6. You will see buy and sell signals on your chart. And it will alert to you if you create an alert with this strategy.
+
+## Bitkub altcoin alert workflow
+
+For tuning Bitkub pairs and maintaining TradingView strategy alerts, see the [Bitkub Altcoin Alerts skill](.agents/skills/bitkub-altcoin-alerts/SKILL.md). It covers two-year 4h backtests, the PF ≥ 1.5 and maximum drawdown ≤ 20% criteria, parameter-specific V2 alert conditions, webhook payload checks, and replacing a pair when a refreshed parameter set fails and a passing replacement is found.
