@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "bitkub-altcoin-alerts": {
+      "source": "/Users/akkaponsomjai/personal/tradingview-strategies",
+      "sourceType": "local",
+      "computedHash": "49b3ba57fb89295b35b4091393b44304b8986777d5a32af49fe43a729f37ffad"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "tradingview-strategies",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TradingView Pine Script strategies and tooling",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "skills:install": "npx skills add . --agent codex --yes"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-personal:xsodus/tradingview-strategies.git"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "nemo": "^4.13.1",
+    "typescript": "^7.0.2"
+  }
+}

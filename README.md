@@ -1,15 +1,25 @@
-# Tradingview Strategy Collection
-This my pinescript collection which can notify buy and sell signals and they can be back tested. 
-It is free and no additional charging.
+# TradingView Strategy Collection
+
+This repository contains Pine Script strategies for exploring entry and exit signals, viewing them on TradingView charts, and evaluating their historical performance with TradingView's Strategy Tester. The strategies are provided as source code to review, configure, and adapt. They generate chart signals and alerts; they do not connect to an exchange or place trades.
+
+## Strategies
+
+- [`xsodus-supertrend-strategy.pine`](xsodus-supertrend-strategy.pine) — Supertrend-based strategy with configurable long and short behavior.
+- [`xsodus-rsi-strategy.pine`](xsodus-rsi-strategy.pine) — RSI entries with optional EMA trend filtering and stop loss.
+- [`xsodus-cdc-strategy.pine`](xsodus-cdc-strategy.pine) — CDC ActionZone strategy.
+- [`xsodus-logistic-regression.pine`](xsodus-logistic-regression.pine) — Logistic-regression-based signal strategy.
 
 
 ## How to use
-1. Go to TradingView website or app then login with you account.
-2. Open the chart that you want to see.
-3. Copy the pine script then paste it to PineEditor section.
-4. Press on `Save` button.
-5. Press on `Add to chart` button.
-6. You will see buy and sell signals on your chart. And it will alert to you if you create an alert with this strategy.
+
+1. Sign in to TradingView and open the chart for the market you want to study.
+2. Open **Pine Editor**, choose a strategy file from this repository, and copy its full contents into the editor.
+3. Save the script, then select **Add to chart**. Resolve any Pine Editor errors before continuing.
+4. Open the strategy's settings and configure its inputs, chart symbol, timeframe, and backtest date range for your analysis.
+5. Review the chart signals and the **Strategy Tester** results. Set realistic commission and slippage assumptions where available, and compare results across appropriate market conditions.
+6. To receive notifications, create an alert from the strategy on the chart. Select the intended strategy instance and alert condition, then choose the interval, expiration, and notification methods. If using a webhook, configure its URL in TradingView and use the payload expected by your receiving service.
+
+Keep the script version and input values consistent between backtests and alerts. Historical results are for research and do not predict future performance.
 
 ## Bitkub altcoin alert workflow
 
@@ -41,3 +51,9 @@ Use this process to select and maintain a set of up to 20 Bitkub altcoin strateg
 If a later parameter update makes an active pair fail either PF or DD threshold, test new Bitkub pairs using the same strategy version, 4h interval, and two-year window. Replace the failing pair only after a candidate passes both thresholds. Update the existing alert in place when the 20-alert plan limit is full, then verify the replacement's alert condition, payload, webhook, and active status. If no candidate passes, report that the 20 qualifying-pair target is unmet. Do not silently remove a working alert or purchase a plan upgrade.
 
 This workflow manages TradingView alerts only; it does not execute trades or place exchange orders.
+
+## Node.js tooling
+
+Install the development dependencies with `npm install`. TypeScript source files belong in `src/`; compile them with `npm run build` or check types without emitting files with `npm run typecheck`. The generated JavaScript and declarations go to `dist/`.
+
+Install this repository's agent skills for Codex with `npm run skills:install`.
