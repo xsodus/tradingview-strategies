@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "skills:install": "npx skills add . --agent codex --yes"
+    "skills:install": "npx skills add ./.agents/skills --agent codex --yes"
   },
   "repository": {
     "type": "git",
