@@ -1,13 +1,13 @@
 ---
 name: crypto-exchange-pair-tuning
-description: Discover spot pairs on a user-selected crypto exchange and tune the repository's Supertrend strategy with consistent backtests. Use when finding or comparing crypto market pairs; does not create alerts.
+description: Discover spot pairs on a user-selected crypto exchange and tune a user-selected strategy from this repository with consistent backtests. Use when finding or comparing crypto market pairs; does not create alerts.
 metadata:
-  short-description: Find and tune crypto exchange pairs
+  short-description: Find pairs and tune a selected strategy
 ---
 
 # Crypto Exchange Pair Tuning
 
-Use this skill to discover eligible spot pairs on the exchange the user selects, then compare them with the repository's TradingView strategy. Finish with a candidate ledger. This skill does not create or edit alerts.
+Use this skill to discover eligible spot pairs on the exchange the user selects, then compare them using the repository strategy selected by the user. Finish with a candidate ledger. This skill does not create or edit alerts.
 
 ## Prepare TradingView for your agent
 
@@ -29,20 +29,23 @@ If the correct Computer Use tool is unavailable or TradingView cannot be opened 
 
 ## Strategy and backtest setup
 
-- Read `xsodus-supertrend-strategy.pine` before starting. Confirm its current title, Pine version, and inputs; the current strategy is **Xsodus Supertrend Strategy (Long Only) V3**, Pine v6. Use the exact current script throughout a comparison.
+- If the user has not named a strategy, ask which repository strategy to tune and wait for their choice. Current options are `xsodus-supertrend-strategy.pine` (Xsodus Supertrend Strategy (Long Only) V3), `xsodus-rsi-strategy.pine` (Xsodus RSI Strategy V1), `xsodus-cdc-strategy.pine` (Xsodus CDC ActionZone V3), and `xsodus-logistic-regression.pine` (Xsodus Logistic Long Regression Strategy v.3). Do not assume Supertrend or combine results across different strategies.
+- If the user has not specified a chart timeframe, ask which timeframe to use and wait for their choice before starting any backtests. Do not silently assume 4h or another timeframe.
+- Read the selected Pine file before starting. Confirm its current title, Pine version, inputs, entry/exit behavior, and any built-in date filters. Use the exact selected script throughout the comparison.
 - Use TradingView desktop through Computer Use to inspect charts and Strategy Tester results when no supported TradingView API is available. Observe the interface after each state-changing action.
-- Unless the user requests otherwise, use 4h candles and a rolling two-year date window ending on the current date. Set the strategy's Start Date and End Date inputs explicitly; the chart's visible range does not set the strategy test window.
+- Use the timeframe selected by the user for every candidate. Unless the user requests otherwise, use a rolling two-year date window ending on the current date. Set the strategy's Start Date and End Date inputs explicitly; the chart's visible range does not set the strategy test window.
+- If the selected script has no date inputs, use an available Strategy Tester date filter or report the actual tested coverage; do not imply a two-year test if the UI or available history does not support it.
 - Confirm that TradingView history covers the requested window for the exact exchange ticker. If history is shorter, report the coverage and keep it separate from full-window results unless the user accepts the limitation.
 - Keep commission, slippage, capital, and sizing assumptions consistent across candidates. Use realistic costs for the selected exchange when known, and record any changes from the script defaults.
 
 ## Tune and compare
 
-1. For each exchange-listed candidate, test reasonable values for the actual V3 inputs: Supertrend length and multiplier, optional EMA filter and length, stop-loss type and settings, take-profit setting and risk/reward ratio, and trailing-stop settings. Keep a record of each tested combination and avoid changing unrelated assumptions between runs.
-2. Compare the same timeframe, date window, script version, and cost assumptions for every candidate. Record the exchange, exact market symbol, TradingView ticker, all input values, dates, profit factor (PF), maximum drawdown (DD), trade count, and history coverage.
+1. For each exchange-listed candidate, test reasonable values for the tunable inputs exposed by the selected script. Keep a record of each tested combination and avoid changing unrelated assumptions between runs.
+2. Compare the same user-selected timeframe, date window, selected strategy version, and cost assumptions for every candidate. Record the timeframe, strategy, exchange, exact market symbol, TradingView ticker, all input values, dates, profit factor (PF), maximum drawdown (DD), trade count, and history coverage.
 3. Use **PF ≥ 1.5** and **maximum DD ≤ 20%** as this project's default qualification criteria unless the user specifies different thresholds. Never round a failing result into a pass.
 4. Prefer PF between 1.5 and 2 when candidates are otherwise comparable; a higher PF also qualifies. Do not choose a parameter combination solely because it fits a small number of trades. Report the tested range and any small-sample or overfitting caveat.
 5. Historical results are measurements of past data, not a guarantee of future performance.
 
 ## Deliverable
 
-Return a candidate ledger with exchange, pair, exact market symbol and TradingView ticker, strategy version and inputs, test dates, PF, maximum DD, trade count, history coverage, qualification status, and notes. Clearly distinguish verified listings and tested results from unverified or untested candidates.
+Return a candidate ledger with selected timeframe, strategy and version, exchange, pair, exact market symbol and TradingView ticker, tested inputs, test dates, PF, maximum DD, trade count, history coverage, qualification status, and notes. Clearly distinguish verified listings and tested results from unverified or untested candidates.

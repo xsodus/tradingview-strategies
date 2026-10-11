@@ -25,8 +25,8 @@ Keep the script version and input values consistent between backtests and alerts
 
 Pair research is exchange-agnostic; the alert skill remains specific to Bitkub:
 
-1. [Crypto Exchange Pair Tuning](.agents/skills/crypto-exchange-pair-tuning/SKILL.md) asks which exchange and market to use when unspecified, verifies listed pairs, and compares the current Supertrend strategy on consistent 4h, two-year backtests by default. Project qualification defaults are PF ≥ 1.5 and maximum DD ≤ 20%.
-2. [Bitkub Alert Setup](.agents/skills/bitkub-altcoin-alert-setup/SKILL.md) uses the tuning ledger for Bitkub spot pairs, then asks the user how many alerts to set up, which pairs to use, whether to duplicate delivery, and which channels to enable (in-app, email, webhook/API) before changing alerts.
+1. [Crypto Exchange Pair Tuning](.agents/skills/crypto-exchange-pair-tuning/SKILL.md) asks which exchange, market, repository strategy, and timeframe to use when unspecified, verifies listed pairs, and compares candidates on consistent backtests using the selected timeframe and a two-year date window by default. Project qualification defaults are PF ≥ 1.5 and maximum DD ≤ 20%.
+2. [Bitkub Alert Setup](.agents/skills/bitkub-altcoin-alert-setup/SKILL.md) first asks which repository strategy and timeframe to use, then applies the tuning workflow to Bitkub spot pairs. Before changing alerts, it confirms the ledger's strategy and timeframe, alert count and pairs, duplicate delivery, and notification channels (in-app, email, webhook/API).
 
 Alert setup uses the tested strategy parameters, checks the account quota, and verifies each saved alert. It does not execute trades or place exchange orders.
 
@@ -43,9 +43,9 @@ npm install
 npm run skills:install
 ```
 
-Use the **Crypto Exchange Pair Tuning** skill to find and compare pairs on a selected exchange. Name the exchange in your request; if you do not, the skill asks which exchange and market to use. Use **Bitkub Alert Setup** when you want TradingView alerts for Bitkub pairs. It first uses the tuning workflow, then asks how many alerts and which pairs to set up, whether notifications should be duplicated, and which channels to enable before changing alerts.
+Use the **Crypto Exchange Pair Tuning** skill to find and compare pairs on a selected exchange, strategy, and timeframe. Name them in your request; if any are missing, the skill asks. Use **Bitkub Alert Setup** when you want TradingView alerts for Bitkub pairs. It asks which repository strategy and timeframe to use, tunes with those choices, then confirms the ledger's strategy and timeframe, how many alerts and which pairs to set up, whether notifications should be duplicated, and which channels to enable before changing alerts.
 
-For example, ask Codex: “Use Crypto Exchange Pair Tuning to find and backtest spot pairs on `<exchange>`.” For Bitkub alerts, ask: “Use Bitkub Alert Setup to tune Bitkub pairs and prepare alerts.”
+For example, ask Codex: “Use Crypto Exchange Pair Tuning to find and backtest spot pairs on `<exchange>` with `<strategy file>` on the `<timeframe>` timeframe.” For Bitkub alerts, ask: “Use Bitkub Alert Setup to prepare alerts using `<strategy file>` on the `<timeframe>` timeframe.”
 
 Before either skill uses TradingView, it checks that the right browser-control tool is available:
 
