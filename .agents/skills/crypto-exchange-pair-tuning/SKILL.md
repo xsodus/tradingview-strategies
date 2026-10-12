@@ -37,6 +37,7 @@ If the correct Computer Use tool is unavailable or TradingView cannot be opened 
 - If the selected script has no date inputs, use an available Strategy Tester date filter or report the actual tested coverage; do not imply a two-year test if the UI or available history does not support it.
 - Confirm that TradingView history covers the requested window for the exact exchange ticker. If history is shorter, report the coverage and keep it separate from full-window results unless the user accepts the limitation.
 - Keep commission, slippage, capital, and sizing assumptions consistent across candidates. Use realistic costs for the selected exchange when known, and record any changes from the script defaults.
+  - Before tuning, verify the selected market's current trading fee from an authoritative exchange source. Record the fee per execution (including whether it applies to both entry and exit), then set the strategy's broker-emulator commission to that rate. Do not carry forward a remembered or prior-run fee without rechecking it. If the fee assumption changes after tuning, rerun every affected pair.
 
 ## Tune and compare
 
